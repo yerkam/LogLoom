@@ -24,7 +24,7 @@ hs_err_pid*
 replay_pid*
 
 # Input ve Output Verileri
+*.json
 *.jsonl
 *.csv
-ecommerce_logs.jsonl
-analytics_report.csv
+*.parquet

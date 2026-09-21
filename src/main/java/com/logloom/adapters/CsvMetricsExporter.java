@@ -42,9 +42,9 @@ public class CsvMetricsExporter implements MetricsExporterPort {
                 
                 writer.write(line);
             }
-            System.out.println("Report exported successfully: " + outputPath);
+            System.out.println("CSV report exported successfully: " + outputPath);
         } catch (IOException e) {
-            System.err.println("Error exporting report: " + e.getMessage());
+            System.err.println("CSV export error: " + e.getMessage());
         }
     }
 }

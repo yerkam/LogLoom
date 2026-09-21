@@ -1,6 +1,8 @@
 package com.logloom.service;
 
 import com.logloom.domain.ClickstreamEvent;
+import com.logloom.filter.EventFilter;
+import com.logloom.filter.InvalidDataFilter;
 import com.logloom.ports.EventParserStrategy;
 
 import java.nio.file.Files;
@@ -27,10 +29,13 @@ public class LogProcessorEngine {
     private final int consumerCount = 4;
     // A special string to signal the end of processing to consumer threads
     private final String POISON_PILL = "EOF";
+    // The filter chain for processing ClickstreamEvent objects
+    private final EventFilter filterChain ;
 
     public LogProcessorEngine(EventParserStrategy parser, TimeWindowProcessor windowProcessor) {
         this.parser = parser;
         this.windowProcessor = windowProcessor;
+        this.filterChain = new InvalidDataFilter();
     }
 
     public void startProcessing(String filePath) {
@@ -50,7 +55,7 @@ public class LogProcessorEngine {
         executor.shutdown();
         try {
             executor.awaitTermination(1, TimeUnit.HOURS);
-            System.out.println("Tüm veri işlendi.");
+            System.out.println("All data processed.");
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
         }
@@ -87,7 +92,10 @@ public class LogProcessorEngine {
                 //  Parse the line into a ClickstreamEvent and process it
                 ClickstreamEvent event = parser.parse(line);
                 if (event != null) {
-                    windowProcessor.processEvent(event);
+                    // Check if the event passes the filter chain before processing
+                    if (filterChain.check(event)) {
+                        windowProcessor.processEvent(event);
+                    }
                 }
             }
         } catch (InterruptedException e) {
